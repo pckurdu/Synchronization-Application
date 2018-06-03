@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset = "UTF-8">
+      <title>Tray</title>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.5/angular.min.js"></script>
+   </head>
+   <body ng-app="myApp" ng-controller="myCtrl">
+
+    <div>
+        <p id="p"></p>
+    </div>
+
+      <script type = "text/javascript">
+         const {remote} = require('electron')
+         const {Tray, Menu} = remote
+         let fs = require('fs')
+         let importantfilename = 'important'
+         let copyfilename = 'copy'
+
+
+         let tray = new Tray('synchronization.png')
+        
+
+         const trayMenuTemplate = [
+            {
+               label: 'Synchronization Application',
+               enabled: false
+            },
+            
+            {
+               label: 'Synchronize',
+               click: function () {
+                Synchronize()
+                //console.log("Clicked on synchronize")
+                WriteScreen()
+               }
+            },
+            {
+               label: 'Hide/Show',
+               click: function () {
+                let win= remote.getCurrentWindow()
+                win.isVisible() ? win.hide() : win.show()
+             
+               }
+            },
+            {
+               label: 'Quit',
+               click: function () {
+               remote.app.quit()
+             
+               }
+            }
+         ]
+
+         let trayMenu = Menu.buildFromTemplate(trayMenuTemplate)
+         tray.setContextMenu(trayMenu)
+
+
+            function Synchronize()
+            {
+                let data=fs.readFileSync(importantfilename, 'utf-8')
+                console.log(data)
+              
+                fs.writeFile(copyfilename,data,(err)=>{
+                    if(err)
+                        console.log(err)
+                })
+            }
+
+            function WriteScreen(){
+                var p=document.getElementById("p");
+                var date=new Date().toLocaleTimeString("en-US")
+                //var date=new Date().toLocaleDateString("en-US")
+                p.innerText="Synchronized Date "+date;
+            }
+
+            var app = angular.module('myApp', []);
+            app.controller('myCtrl', function($scope, $interval) {
+            
+                $interval(function () {
+                    Synchronize()
+                    //console.log("Clicked on synchronize")
+                    WriteScreen()
+                 }, 1000*60*60*24);
+             });
+
+      </script>
+   </body>
+</html>
